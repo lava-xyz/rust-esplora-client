@@ -65,11 +65,14 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(Some(deserialize(&into_bytes(resp)?)?)),
-            Err(ureq::Error::Status(code, _)) => {
+            Err(ureq::Error::Status(code, resp)) => {
                 if is_status_not_found(code) {
                     return Ok(None);
                 }
-                Err(Error::HttpResponse(code))
+                Err(Error::HttpResponse {
+                    status: code,
+                    message: resp.into_string()?,
+                })
             }
             Err(e) => Err(Error::Ureq(e)),
         }
@@ -97,11 +100,14 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(Some(Txid::from_str(&resp.into_string()?)?)),
-            Err(ureq::Error::Status(code, _)) => {
+            Err(ureq::Error::Status(code, resp)) => {
                 if is_status_not_found(code) {
                     return Ok(None);
                 }
-                Err(Error::HttpResponse(code))
+                Err(Error::HttpResponse {
+                    status: code,
+                    message: resp.into_string()?,
+                })
             }
             Err(e) => Err(Error::Ureq(e)),
         }
@@ -116,20 +122,18 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(Some(resp.into_json()?)),
-            Err(ureq::Error::Status(code, _)) => {
-                if is_status_not_found(code) {
-                    return Ok(None);
-                }
-                Err(Error::HttpResponse(code))
-            }
+            Err(ureq::Error::Status(code, resp)) => Err(Error::HttpResponse {
+                status: code,
+                message: resp.into_string()?,
+            }),
             Err(e) => Err(Error::Ureq(e)),
         }
     }
 
     /// Get a [`BlockHeader`] given a particular block height.
     #[deprecated(
-        since = "0.2.0",
-        note = "Deprecated to improve alignment with Esplora API. Users should use `get_block_hash` and `get_header_by_hash` methods directly."
+    since = "0.2.0",
+    note = "Deprecated to improve alignment with Esplora API. Users should use `get_block_hash` and `get_header_by_hash` methods directly."
     )]
     pub fn get_header(&self, block_height: u32) -> Result<BlockHeader, Error> {
         let block_hash = self.get_block_hash(block_height)?;
@@ -145,7 +149,10 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(deserialize(&Vec::from_hex(&resp.into_string()?)?)?),
-            Err(ureq::Error::Status(code, _)) => Err(Error::HttpResponse(code)),
+            Err(ureq::Error::Status(code, resp)) => Err(Error::HttpResponse {
+                status: code,
+                message: resp.into_string()?,
+            }),
             Err(e) => Err(Error::Ureq(e)),
         }
     }
@@ -159,7 +166,10 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(resp.into_json()?),
-            Err(ureq::Error::Status(code, _)) => Err(Error::HttpResponse(code)),
+            Err(ureq::Error::Status(code, resp)) => Err(Error::HttpResponse {
+                status: code,
+                message: resp.into_string()?,
+            }),
             Err(e) => Err(Error::Ureq(e)),
         }
     }
@@ -173,11 +183,14 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(Some(deserialize(&into_bytes(resp)?)?)),
-            Err(ureq::Error::Status(code, _)) => {
+            Err(ureq::Error::Status(code, resp)) => {
                 if is_status_not_found(code) {
                     return Ok(None);
                 }
-                Err(Error::HttpResponse(code))
+                Err(Error::HttpResponse {
+                    status: code,
+                    message: resp.into_string()?,
+                })
             }
             Err(e) => Err(Error::Ureq(e)),
         }
@@ -192,11 +205,14 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(Some(resp.into_json()?)),
-            Err(ureq::Error::Status(code, _)) => {
+            Err(ureq::Error::Status(code, resp)) => {
                 if is_status_not_found(code) {
                     return Ok(None);
                 }
-                Err(Error::HttpResponse(code))
+                Err(Error::HttpResponse {
+                    status: code,
+                    message: resp.into_string()?,
+                })
             }
             Err(e) => Err(Error::Ureq(e)),
         }
@@ -211,11 +227,14 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(Some(deserialize(&Vec::from_hex(&resp.into_string()?)?)?)),
-            Err(ureq::Error::Status(code, _)) => {
+            Err(ureq::Error::Status(code, resp)) => {
                 if is_status_not_found(code) {
                     return Ok(None);
                 }
-                Err(Error::HttpResponse(code))
+                Err(Error::HttpResponse {
+                    status: code,
+                    message: resp.into_string()?,
+                })
             }
             Err(e) => Err(Error::Ureq(e)),
         }
@@ -234,11 +253,14 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(Some(resp.into_json()?)),
-            Err(ureq::Error::Status(code, _)) => {
+            Err(ureq::Error::Status(code, resp)) => {
                 if is_status_not_found(code) {
                     return Ok(None);
                 }
-                Err(Error::HttpResponse(code))
+                Err(Error::HttpResponse {
+                    status: code,
+                    message: resp.into_string()?,
+                })
             }
             Err(e) => Err(Error::Ureq(e)),
         }
@@ -253,7 +275,10 @@ impl BlockingClient {
 
         match resp {
             Ok(_) => Ok(()), // We do not return the txid?
-            Err(ureq::Error::Status(code, _)) => Err(Error::HttpResponse(code)),
+            Err(ureq::Error::Status(code, resp)) => Err(Error::HttpResponse {
+                status: code,
+                message: resp.into_string()?,
+            }),
             Err(e) => Err(Error::Ureq(e)),
         }
     }
@@ -267,7 +292,10 @@ impl BlockingClient {
 
         match resp {
             Ok(resp) => Ok(resp.into_string()?.parse()?),
-            Err(ureq::Error::Status(code, _)) => Err(Error::HttpResponse(code)),
+            Err(ureq::Error::Status(code, resp)) => Err(Error::HttpResponse {
+                status: code,
+                message: resp.into_string()?,
+            }),
             Err(e) => Err(Error::Ureq(e)),
         }
     }
@@ -301,7 +329,10 @@ impl BlockingClient {
     fn process_block_result(response: Result<Response, ureq::Error>) -> Result<BlockHash, Error> {
         match response {
             Ok(resp) => Ok(BlockHash::from_str(&resp.into_string()?)?),
-            Err(ureq::Error::Status(code, _)) => Err(Error::HttpResponse(code)),
+            Err(ureq::Error::Status(code, resp)) => Err(Error::HttpResponse {
+                status: code,
+                message: resp.into_string()?,
+            }),
             Err(e) => Err(Error::Ureq(e)),
         }
     }
@@ -319,7 +350,10 @@ impl BlockingClient {
                 let map: HashMap<String, f64> = resp.into_json()?;
                 Ok(map)
             }
-            Err(ureq::Error::Status(code, _)) => Err(Error::HttpResponse(code)),
+            Err(ureq::Error::Status(code, resp)) => Err(Error::HttpResponse {
+                status: code,
+                message: resp.into_string()?,
+            }),
             Err(e) => Err(Error::Ureq(e)),
         }?;
 
@@ -334,13 +368,13 @@ impl BlockingClient {
         script: &Script,
         last_seen: Option<Txid>,
     ) -> Result<Vec<Tx>, Error> {
-        let script_hash = sha256::Hash::hash(script.as_bytes()).into_inner().to_hex();
+        let script_hash = sha256::Hash::hash(script.as_bytes());
         let url = match last_seen {
             Some(last_seen) => format!(
-                "{}/scripthash/{}/txs/chain/{}",
+                "{}/scripthash/{:x}/txs/chain/{}",
                 self.url, script_hash, last_seen
             ),
-            None => format!("{}/scripthash/{}/txs", self.url, script_hash),
+            None => format!("{}/scripthash/{:x}/txs", self.url, script_hash),
         };
         Ok(self.agent.get(&url).call()?.into_json()?)
     }
@@ -393,7 +427,13 @@ fn into_bytes(resp: Response) -> Result<Vec<u8>, io::Error> {
 impl From<ureq::Error> for Error {
     fn from(e: ureq::Error) -> Self {
         match e {
-            ureq::Error::Status(code, _) => Error::HttpResponse(code),
+            ureq::Error::Status(code, resp) => match resp.into_string() {
+                Ok(msg) => Error::HttpResponse {
+                    status: code,
+                    message: msg,
+                },
+                Err(e) => Error::Io(e),
+            },
             e => Error::Ureq(e),
         }
     }
